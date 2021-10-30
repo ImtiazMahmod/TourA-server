@@ -35,7 +35,7 @@ async function run() {
         //load all tour
         app.get('/allTour', async (req, res) => {
             const allTour = await packagesCollection.find({}).toArray()
-            console.log('get all tour',allTour);
+            // console.log('get all tour',allTour);
             res.send(allTour)
         })
 
@@ -51,8 +51,23 @@ async function run() {
             const newBook = req.body
             const result = await booksCollection.insertOne(newBook)
             res.json(result)
-            console.log('booked',result);
+            // console.log('booked',result);
         })
+
+        //load user matched tours
+        app.get('/myTours/:email', async (req, res) => {
+            const email = req.params.email
+            const myTours = await booksCollection.find({ email: email }).toArray()
+            res.send(myTours)
+        })
+
+        ///delete myTour
+        app.delete('/deleteMyTour/:email', async (req, res) => {
+            const email= req.params.email
+            const tourDeleted = await booksCollection.deleteOne({ email: email })
+            console.log('tourdeleted');
+            res.send(tourDeleted)
+       })
     }
     finally {
         // await client.close()
