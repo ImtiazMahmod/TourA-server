@@ -2,6 +2,7 @@ const express = require('express')
 const cors = require('cors')
 require('dotenv').config()
 const { MongoClient } = require('mongodb');
+const ObjectId = require('mongodb').ObjectId
 
 const app = express()
 const port = process.env.PORT || 5000
@@ -21,19 +22,36 @@ async function run() {
         const database = client.db("tourZone");
 
         const packagesCollection = database.collection("packages");
+        const booksCollection = database.collection("books");
 
 
         ///Add Tour
         app.post('/addTour', async (req, res) => {
-            const tour = req.body
-            const result = await packagesCollection.insertOne(tour);
+            const newTour = req.body
+            const result = await packagesCollection.insertOne(newTour);
             res.json(result)
         })
-
+        
         //load all tour
         app.get('/allTour', async (req, res) => {
             const allTour = await packagesCollection.find({}).toArray()
+            console.log('get all tour',allTour);
             res.send(allTour)
+        })
+
+        //load specific tour
+        app.get('/tour/:id', async (req, res) => {
+            const id = req.params.id
+            const tour = await packagesCollection.findOne({ _id: ObjectId(id) })
+            res.send(tour)
+        })
+
+        ///book tour
+        app.post('/bookTour', async (req, res) => {
+            const newBook = req.body
+            const result = await booksCollection.insertOne(newBook)
+            res.json(result)
+            console.log('booked',result);
         })
     }
     finally {
