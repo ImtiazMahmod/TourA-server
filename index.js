@@ -18,9 +18,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run() {
     try {
         await client.connect();
-
         const database = client.db("tourZone");
-
         const packagesCollection = database.collection("packages");
         const booksCollection = database.collection("books");
 
@@ -35,7 +33,6 @@ async function run() {
         //load all tour
         app.get('/allTour', async (req, res) => {
             const allTour = await packagesCollection.find({}).toArray()
-            // console.log('get all tour',allTour);
             res.send(allTour)
         })
 
@@ -51,7 +48,6 @@ async function run() {
             const newBook = req.body
             const result = await booksCollection.insertOne(newBook)
             res.json(result)
-            // console.log('booked',result);
         })
 
         //load user matched tours
@@ -65,9 +61,45 @@ async function run() {
         app.delete('/deleteMyTour/:email', async (req, res) => {
             const email= req.params.email
             const tourDeleted = await booksCollection.deleteOne({ email: email })
-            console.log('tourdeleted');
             res.send(tourDeleted)
-       })
+        })
+        
+        ///update tour status
+        app.put('/updateTour/:id', async (req, res) => {
+            const id = req.params.id
+            console.log(id);
+            const filter = { _id:ObjectId( id )}
+            const updateDoc = {
+                $set: {
+                        status : 'approved'
+                    }
+            }
+            const options = { upsert: true }
+            
+            const statusUpdated = await booksCollection.updateOne(filter, updateDoc, options)
+            res.json(statusUpdated)
+        })
+
+        ///manage all orders
+        app.get('/manageOrders', async (req, res) => {
+            const cursor = booksCollection.find({})
+            const manageOrders = await cursor.toArray()
+
+            res.send(manageOrders)
+        })
+
+        ///delete order
+        app.delete('/deleteOrder/:id', async (req, res) => {
+            const id = req.params.id
+            const orderDeleted = await booksCollection.deleteOne({ _id: ObjectId(id) })
+            res.send(orderDeleted)
+        })
+
+        //delete All Orders
+        app.delete('/deleteAllOrders', async (req, res) => {
+            const ordersDeleted = await booksCollection.deleteMany({})
+            res.send(ordersDeleted)
+        })
     }
     finally {
         // await client.close()
@@ -80,7 +112,6 @@ run().catch(console.dir);
 //check server connection
 app.get('/', (req, res) => {
     res.send('welcome tourA')
-    console.log('serverOK');
 })
 
 app.listen(port, () => {
